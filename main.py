@@ -103,4 +103,17 @@ async def info(ctx, *, nome):
                         f"🌍 Dominância BTC: {btc_dominancia}%")
             await ctx.send(mensagem)
         else:
-     
+            await ctx.send("Erro ao buscar os dados da moeda.")
+    else:
+        await ctx.send("Moeda não encontrada.")
+
+@bot.command(aliases=["comandos", "ajuda"])
+async def comando(ctx):
+    comandos = ["!ranking - Mostra o top 10 moedas por marketcap",
+                "!preco - Mostra o preço atual do Bitcoin",
+                "!moeda <nome ou sigla> - Mostra detalhes de uma moeda",
+                "!info <nome ou sigla> - Mostra detalhes de uma moeda com dominância do BTC",
+                "!comando - Lista todos os comandos disponíveis"]
+    await ctx.send("\n".join(comandos))
+
+bot.run(TOKEN)

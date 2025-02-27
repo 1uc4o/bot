@@ -17,6 +17,12 @@ bot = commands.Bot(command_prefix=["!", "$"], intents=intents)
 API_URL = "https://api.coingecko.com/api/v3"
 
 @bot.event
+
+@bot.event
+async def on_ready():
+    print(f'Bot conectado como {bot.user}')
+    atualizar_bitcoin.start()  # Isso fazia o loop parar após um comando
+
 async def on_message(message):
     if message.author == bot.user:
         return
@@ -26,14 +32,17 @@ async def on_message(message):
     # Permite que os comandos ainda funcionem corretamente
     await bot.process_commands(message)
 
-@tasks.loop(seconds=10)
 async def atualizar_bitcoin():
+    """Loop infinito para enviar o preço do Bitcoin a cada 10s"""
+    await bot.wait_until_ready()  # Espera o bot estar pronto
     canal = bot.get_channel(CHANNEL_ID)
-    if canal:
-        bitcoin = buscar_moeda("bitcoin")
-        if bitcoin:
-            preco = bitcoin['market_data']['current_price']['usd']
-            await canal.send(f"💰 Bitcoin agora: ${preco:.2f}")
+    while not bot.is_closed():  # Mantém o loop rodando sempre
+        if canal:
+            bitcoin = buscar_moeda("bitcoin")
+            if bitcoin:
+                preco = bitcoin['market_data']['current_price']['usd']
+                await canal.send(f"💰 Bitcoin agora: ${preco:.2f}")
+        await asyncio.sleep(10)  # Espera 10 segundos antes de repetir
 
 def buscar_moeda(coin_id):
     url = f"{API_URL}/coins/{coin_id}"

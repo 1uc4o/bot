@@ -59,8 +59,8 @@ async def send_bitcoin_update():
     while not bot.is_closed():
         price, change = await get_bitcoin_price()
         status = "subiu" if change > 0 else "caiu"
-        await channel.send(f"🪙 Bitcoin agora: ${price:.2f}\n📉 Nas últimas 24h, {status} {abs(change):.2f}%")
-        await asyncio.sleep(3600)
+        await channel.send(f"🪙 Bitcoin agora: ${price:.2f}\n")
+        await asyncio.sleep(10)
 
 @client.event
 async def on_ready():

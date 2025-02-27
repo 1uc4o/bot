@@ -6,7 +6,7 @@ from discord.ext import commands
 import os
 
 TOKEN = os.getenv("TOKEN")
-CHANNEL_ID = 123456789012345678
+CHANNEL_ID = 1344432335134654629
 
 intents = discord.Intents.all()
 intents.messages = True

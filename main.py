@@ -29,7 +29,7 @@ async def send_bitcoin_update():
         price, change = await get_crypto_data("bitcoin")
         status = "subiu" if change > 0 else "caiu"
         await channel.send(f"🪙 Bitcoin agora: ${price:.2f}\n📉 Nas últimas 24h, {status} {abs(change):.2f}%")
-        await asyncio.sleep(3600)  # Espera 1 hora
+        await asyncio.sleep(10)  # Espera 1 hora
 
 @bot.event
 async def on_ready():

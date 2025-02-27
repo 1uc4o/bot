@@ -63,59 +63,49 @@ async def preco(ctx):
     else:
         await ctx.send("Erro ao buscar o preço do Bitcoin.")
 
-@bot.command(aliases=["moeda", "crypto"])
-async def coin(ctx, *, nome):
-    """Mostra detalhes de uma criptomoeda"""
-    url = f"{API_URL}/coins/markets?vs_currency=usd&ids={nome.lower()}"
-    resposta = requests.get(url)
-    if resposta.status_code == 200:
-        data = resposta.json()
-        if data:
-            moeda = data[0]
-            mensagem = (f"**{moeda['name']} ({moeda['symbol'].upper()})**\n"
-                        f"💰 Preço: ${moeda['current_price']:.2f}\n"
-                        f"📊 MarketCap: ${moeda['market_cap']:,}\n"
-                        f"📉 24h: {moeda['price_change_percentage_24h']:.2f}%\n"
-                        f"📈 7d: {moeda.get('price_change_percentage_7d_in_currency', 'N/A')}%\n"
-                        f"📅 30d: {moeda.get('price_change_percentage_30d_in_currency', 'N/A')}%")
-            await ctx.send(mensagem)
-        else:
-            await ctx.send("Moeda não encontrada.")
-
 @bot.command()
 async def info(ctx, *, nome):
     """Mostra detalhes de uma criptomoeda, incluindo a dominância do BTC"""
-    url = f"{API_URL}/coins/{nome.lower()}"
-    resposta = requests.get(url)
-    if resposta.status_code == 200:
-        data = resposta.json()
-        market_data = data.get("market_data", {})
+    # Buscar a lista de moedas para mapear siglas para nomes
+    lista_url = f"{API_URL}/coins/list"
+    lista_resposta = requests.get(lista_url)
+    
+    if lista_resposta.status_code == 200:
+        moedas = lista_resposta.json()
+        nome = nome.lower()
 
-        if market_data:
-            preco = market_data["current_price"]["usd"]
-            marketcap = market_data["market_cap"]["usd"]
-            volume = market_data["total_volume"]["usd"]
-            btc_dominancia = market_data.get("market_cap_dominance", {}).get("btc", "N/A")
+        # Tenta encontrar a moeda pelo ID ou pela sigla
+        moeda_id = None
+        for moeda in moedas:
+            if moeda["id"] == nome or moeda["symbol"].lower() == nome:
+                moeda_id = moeda["id"]
+                break
+        
+        if not moeda_id:
+            await ctx.send("Moeda não encontrada.")
+            return
+        
+        # Buscar os dados da moeda pelo ID encontrado
+        url = f"{API_URL}/coins/{moeda_id}"
+        resposta = requests.get(url)
+        
+        if resposta.status_code == 200:
+            data = resposta.json()
+            market_data = data.get("market_data", {})
 
-            mensagem = (f"**{data['name']} ({data['symbol'].upper()})**\n"
-                        f"💰 Preço: ${preco:.2f}\n"
-                        f"📊 MarketCap: ${marketcap:,}\n"
-                        f"📉 Volume 24h: ${volume:,}\n"
-                        f"📉 24h: {market_data.get('price_change_percentage_24h', 'N/A')}%\n"
-                        f"📈 7d: {market_data.get('price_change_percentage_7d', 'N/A')}%\n"
-                        f"📅 30d: {market_data.get('price_change_percentage_30d', 'N/A')}%\n"
-                        f"🌍 Dominância BTC: {btc_dominancia}%")
-            await ctx.send(mensagem)
-        else:
-            await ctx.send("Erro ao buscar os dados da moeda.")
-    else:
-        await ctx.send("Moeda não encontrada.")
+            if market_data:
+                preco = market_data["current_price"]["usd"]
+                marketcap = market_data["market_cap"]["usd"]
+                volume = market_data["total_volume"]["usd"]
+                mensagem = (f"**{data['name']} ({data['symbol'].upper()})**\n"
+                            f"💰 Preço: ${preco:.2f}\n"
+                            f"📊 MarketCap: ${marketcap:,}\n"
+                     
 
 @bot.command(aliases=["comandos", "ajuda"])
 async def comando(ctx):
     comandos = ["!ranking - Mostra o top 10 moedas por marketcap",
                 "!preco - Mostra o preço atual do Bitcoin",
-                "!moeda <nome ou sigla> - Mostra detalhes de uma moeda",
                 "!info <nome ou sigla> - Mostra detalhes de uma moeda com dominância do BTC",
                 "!comando - Lista todos os comandos disponíveis"]
     await ctx.send("\n".join(comandos))

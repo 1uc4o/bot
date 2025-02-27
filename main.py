@@ -1,7 +1,7 @@
 import discord
 import requests
 import asyncio
-from discord.ext import commands, tasks
+from discord.ext import commands
 import os
 
 TOKEN = os.getenv("TOKEN")
@@ -17,12 +17,11 @@ bot = commands.Bot(command_prefix=["!", "$"], intents=intents)
 API_URL = "https://api.coingecko.com/api/v3"
 
 @bot.event
-
-@bot.event
 async def on_ready():
     print(f'Bot conectado como {bot.user}')
-    atualizar_bitcoin.start()  # Isso fazia o loop parar após um comando
+    asyncio.create_task(atualizar_bitcoin())  # Corrigido para rodar sem bloquear comandos
 
+@bot.event
 async def on_message(message):
     if message.author == bot.user:
         return
@@ -62,7 +61,7 @@ async def ranking(ctx):
             mensagem += f"{i}. {moeda['name']} (${moeda['symbol'].upper()}): ${moeda['market_cap']:,}\n"
         await ctx.send(mensagem)
 
-@bot.command(aliases=["preço", "price","valor"])
+@bot.command(aliases=["preço", "price", "valor"])
 async def preco(ctx):
     """Mostra o preço atual do Bitcoin"""
     bitcoin = buscar_moeda("bitcoin")
@@ -75,7 +74,6 @@ async def preco(ctx):
 @bot.command()
 async def info(ctx, *, nome):
     """Mostra detalhes de uma criptomoeda, incluindo a dominância do BTC"""
-    # Buscar a lista de moedas para mapear siglas para nomes
     lista_url = f"{API_URL}/coins/list"
     lista_resposta = requests.get(lista_url)
     
@@ -83,7 +81,6 @@ async def info(ctx, *, nome):
         moedas = lista_resposta.json()
         nome = nome.lower()
 
-        # Tenta encontrar a moeda pelo ID ou pela sigla
         moeda_id = None
         for moeda in moedas:
             if moeda["id"] == nome or moeda["symbol"].lower() == nome:
@@ -94,7 +91,6 @@ async def info(ctx, *, nome):
             await ctx.send("Moeda não encontrada.")
             return
         
-        # Buscar os dados da moeda pelo ID encontrado
         url = f"{API_URL}/coins/{moeda_id}"
         resposta = requests.get(url)
         
@@ -106,10 +102,23 @@ async def info(ctx, *, nome):
                 preco = market_data["current_price"]["usd"]
                 marketcap = market_data["market_cap"]["usd"]
                 volume = market_data["total_volume"]["usd"]
+                btc_dominancia = market_data.get("market_cap_dominance", {}).get("btc", "N/A")
+
                 mensagem = (f"**{data['name']} ({data['symbol'].upper()})**\n"
                             f"💰 Preço: ${preco:.2f}\n"
                             f"📊 MarketCap: ${marketcap:,}\n"
-                     
+                            f"📉 Volume 24h: ${volume:,}\n"
+                            f"📉 24h: {market_data.get('price_change_percentage_24h', 'N/A')}%\n"
+                            f"📈 7d: {market_data.get('price_change_percentage_7d', 'N/A')}%\n"
+                            f"📅 30d: {market_data.get('price_change_percentage_30d', 'N/A')}%\n"
+                            f"🌍 Dominância BTC: {btc_dominancia}%")
+                await ctx.send(mensagem)
+            else:
+                await ctx.send("Erro ao buscar os dados da moeda.")
+        else:
+            await ctx.send("Erro ao buscar os dados da moeda.")
+    else:
+        await ctx.send("Erro ao acessar a lista de moedas.")
 
 @bot.command(aliases=["comandos", "ajuda"])
 async def comando(ctx):

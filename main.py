@@ -17,9 +17,14 @@ bot = commands.Bot(command_prefix=["!", "$"], intents=intents)
 API_URL = "https://api.coingecko.com/api/v3"
 
 @bot.event
-async def on_ready():
-    print(f'Bot conectado como {bot.user}')
-    atualizar_bitcoin.start()  # Inicia o looping do Bitcoin
+async def on_message(message):
+    if message.author == bot.user:
+        return
+    
+    print(f"Mensagem recebida: {message.content} de {message.author}")
+
+    # Permite que os comandos ainda funcionem corretamente
+    await bot.process_commands(message)
 
 @tasks.loop(seconds=10)
 async def atualizar_bitcoin():

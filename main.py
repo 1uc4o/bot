@@ -12,7 +12,6 @@ intents.messages = True
 intents.guilds = True
 intents.message_content = True
 
-client = discord.Client(intents=intents)
 bot = commands.Bot(command_prefix=["!", "$"], intents=intents)
 
 API_URL = "https://api.coingecko.com/api/v3"

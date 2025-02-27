@@ -67,7 +67,7 @@ async def preco(ctx):
     bitcoin = buscar_moeda("bitcoin")
     if bitcoin:
         preco = bitcoin['market_data']['current_price']['usd']
-        await ctx.send(f"💰 Bitcoin agora: ${preco:.2f}")
+        await ctx.send(f"---\n💰 Bitcoin agora: ${preco:.2f}\n---")
     else:
         await ctx.send("Erro ao buscar o preço do Bitcoin.")
 

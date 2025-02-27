@@ -40,7 +40,7 @@ async def atualizar_bitcoin():
             bitcoin = buscar_moeda("bitcoin")
             if bitcoin:
                 preco = bitcoin['market_data']['current_price']['usd']
-                await canal.send(f"---\n💰 Bitcoin agora: ${preco:.2f}\n---")
+                await canal.send(f"------------------------------\n💰 Bitcoin agora: **${preco:.2f}**\n------------------------------")
         await asyncio.sleep(900)  # Espera 15 min antes de repetir
 
 def buscar_moeda(coin_id):
@@ -67,7 +67,7 @@ async def preco(ctx):
     bitcoin = buscar_moeda("bitcoin")
     if bitcoin:
         preco = bitcoin['market_data']['current_price']['usd']
-        await ctx.send(f"---\n💰 Bitcoin agora: ${preco:.2f}\n---")
+        await ctx.send(f"------------------------------\n💰 Bitcoin agora: **${preco:.2f}**\n------------------------------")
     else:
         await ctx.send("Erro ao buscar o preço do Bitcoin.")
 
